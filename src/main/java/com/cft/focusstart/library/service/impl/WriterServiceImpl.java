@@ -26,7 +26,7 @@ public class WriterServiceImpl implements WriterService {
     @Override
     public Writer create(String firstName, String surname, String middleName, String comment) {
         Writer writerForSave = new Writer(firstName, surname, middleName, comment);
-        Writer savedWriter = writerRepository.save(writerForSave);
+        Writer savedWriter = writerRepository.save(prepareWriterToSaveOrUpdate(writerForSave));
         log.debug("New Writer: "  + savedWriter);
         return savedWriter;
     }
@@ -39,7 +39,7 @@ public class WriterServiceImpl implements WriterService {
         writerForUpdate.setMiddleName(middleName);
         writerForUpdate.setComment(comment);
 
-        Writer updatedWriter = writerRepository.save(writerForUpdate);
+        Writer updatedWriter = writerRepository.save(prepareWriterToSaveOrUpdate(writerForUpdate));
         log.debug("Writer with id {} is updated. Now: {}", updatedWriter.getId(), updatedWriter);
         return updatedWriter;
     }
@@ -50,13 +50,13 @@ public class WriterServiceImpl implements WriterService {
         if(!optionalWriterForFind.isPresent()) {
             return null;
         }
-        return optionalWriterForFind.get();
+        return prepareWriterToGet(optionalWriterForFind.get());
     }
 
     @Override
     public List<Writer> findAll() {
         List<Writer> writers = new ArrayList<>();
-        writerRepository.findAll().forEach(writers::add);
+        writerRepository.findAll().forEach(writer -> writers.add(prepareWriterToGet(writer)));
         return writers;
     }
 
@@ -72,12 +72,30 @@ public class WriterServiceImpl implements WriterService {
     }
 
     @PostConstruct
-    public void myMethod() throws Exception {
+    public void tests() throws Exception {
         this.create("f1", "s1", null, null);
         this.create("f1", "s2", null, null);
+        System.out.println("all + " + findAll());
         this.create("f1", "s2", null, null);
+    }
 
-        this.create("f3", "s3", "m3", "c3");
-        this.create("f3", "s3", "m3", "c3");
+    private Writer prepareWriterToSaveOrUpdate(Writer writer) {
+        if(writer.getMiddleName() == null) {
+            writer.setMiddleName( Writer.WRITER_MIDDLE_NAME_NULL_VALUE);
+        }
+        if(writer.getComment() == null) {
+            writer.setComment(Writer.WRITER_COMMENT_NULL_VALUE);
+        }
+        return  writer;
+    }
+
+    private Writer prepareWriterToGet(Writer writer) {
+        if(writer.getMiddleName().equals(Writer.WRITER_MIDDLE_NAME_NULL_VALUE)) {
+            writer.setMiddleName(null);
+        }
+        if(writer.getComment().equals(Writer.WRITER_COMMENT_NULL_VALUE)) {
+            writer.setComment(null);
+        }
+        return writer;
     }
 }
