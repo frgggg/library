@@ -25,11 +25,11 @@ public class Writer {
     public static final String WRITER_MIDDLE_NAME_PARAM_NAME = "middleName";
     public static final int WRITER_MIDDLE_NAME_LEN_MIN = 1;
     public static final int WRITER_MIDDLE_NAME_LEN_MAX = 100;
-    public static final String WRITER_MIDDLE_NAME_NULL_VALUE = "\n***\n@Null\n***\n";
+    public static final String WRITER_MIDDLE_NAME_NULL_VALUE = "\n\n\n~~~\n***\n@@@Null\n&&&\n^^^\n";
 
     public static final String WRITER_COMMENT_PARAM_NAME = "comment";
     public static final int WRITER_COMMENT_LEN_MAX = 100;
-    public static final String WRITER_COMMENT_NULL_VALUE = "\n***\n@Null\n***\n";
+    public static final String WRITER_COMMENT_NULL_VALUE = "\n\n\n~~~\n***\n@@@Null@@@\n&&&\n^^^\n";
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
