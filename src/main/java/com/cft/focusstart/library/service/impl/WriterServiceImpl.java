@@ -1,101 +1,106 @@
 package com.cft.focusstart.library.service.impl;
 
+import com.cft.focusstart.library.exception.ServiceException;
 import com.cft.focusstart.library.model.Writer;
 import com.cft.focusstart.library.repository.WriterRepository;
 import com.cft.focusstart.library.service.WriterService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceException;
+import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static com.cft.focusstart.library.exception.ServiceException.*;
+import static com.cft.focusstart.library.log.messages.ServiceLogMessages.*;
 
 @Service
 @Slf4j
 public class WriterServiceImpl implements WriterService {
 
+    public static final String SERVICE_NAME = "WriterServiceImpl";
+
     private WriterRepository writerRepository;
+    private EntityManager entityManager;
 
     @Autowired
-    private WriterServiceImpl(WriterRepository writerRepository) {
+    protected WriterServiceImpl(WriterRepository writerRepository, EntityManager entityManager) {
         this.writerRepository = writerRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Writer create(String firstName, String surname, String middleName, String comment) {
-        Writer writerForSave = new Writer(firstName, surname, middleName, comment);
-        Writer savedWriter = writerRepository.save(prepareWriterToSaveOrUpdate(writerForSave));
-        log.debug("New Writer: "  + savedWriter);
+        Writer savedWriter;
+        try {
+            savedWriter = writerRepository.save(new Writer(firstName, surname, middleName, comment));
+            entityManager.flush();
+        } catch (DataIntegrityViolationException | PersistenceException | ConstraintViolationException e) {
+            throw getSaveServiceException(SERVICE_NAME, (new Writer(firstName, surname, middleName, comment)).toString(), e);
+        } catch (Exception e) {
+            throw getUnknownServiceException(SERVICE_NAME, e);
+        }
+        log.debug(SERVICE_LOG_NEW_ENTITY, savedWriter);
         return savedWriter;
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Writer updateById(Long id, String firstName, String surname, String middleName, String comment) {
         Writer writerForUpdate = findById(id);
         writerForUpdate.setFirstName(firstName);
         writerForUpdate.setSurname(surname);
         writerForUpdate.setMiddleName(middleName);
         writerForUpdate.setComment(comment);
-
-        Writer updatedWriter = writerRepository.save(prepareWriterToSaveOrUpdate(writerForUpdate));
-        log.debug("Writer with id {} is updated. Now: {}", updatedWriter.getId(), updatedWriter);
+        Writer updatedWriter;
+        try {
+            updatedWriter = writerRepository.save(writerForUpdate);
+            entityManager.flush();
+        } catch (DataIntegrityViolationException | PersistenceException | ConstraintViolationException e) {
+            throw getUpdateServiceException(SERVICE_NAME, writerForUpdate.toString(), e);
+        } catch (Exception e) {
+            throw getUnknownServiceException(SERVICE_NAME, e);
+        }
+        log.debug(SERVICE_LOG_UPDATE_ENTITY, updatedWriter.getId(), updatedWriter);
         return updatedWriter;
     }
 
     @Override
-    public Writer findById(Long id) {
+    public Writer findById(Long id) throws SecurityException {
         Optional<Writer> optionalWriterForFind = writerRepository.findById(id);
         if(!optionalWriterForFind.isPresent()) {
-            return null;
+            throw getFindByIdServiceException(SERVICE_NAME, id);
         }
-        return prepareWriterToGet(optionalWriterForFind.get());
+        return optionalWriterForFind.get();
     }
 
     @Override
     public List<Writer> findAll() {
         List<Writer> writers = new ArrayList<>();
-        writerRepository.findAll().forEach(writer -> writers.add(prepareWriterToGet(writer)));
+        writerRepository.findAll().forEach(writers::add);
         return writers;
     }
 
-    @Override
-    public void deleteById(Long id) {
-        writerRepository.deleteById(id);
-        log.debug("Writer with id " + id + "is deleted");
-    }
 
     @Override
-    public boolean isWriterExist(Long id) {
-        return writerRepository.existsById(id);
-    }
-
-    @PostConstruct
-    public void tests() throws Exception {
-        this.create("f1", "s1", null, null);
-        this.create("f1", "s2", null, null);
-        System.out.println("all + " + findAll());
-        this.create("f1", "s2", null, null);
-    }
-
-    private Writer prepareWriterToSaveOrUpdate(Writer writer) {
-        if(writer.getMiddleName() == null) {
-            writer.setMiddleName( Writer.WRITER_MIDDLE_NAME_NULL_VALUE);
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void deleteById(Long id) throws SecurityException {
+        Writer writerForDelete = findById(id);
+        if(writerForDelete.getBooks() != null) {
+            if(writerForDelete.getBooks().size() > 0) {
+                throw getDeleteByIdServiceException(SERVICE_NAME, writerForDelete.toString());
+            }
         }
-        if(writer.getComment() == null) {
-            writer.setComment(Writer.WRITER_COMMENT_NULL_VALUE);
-        }
-        return  writer;
-    }
-
-    private Writer prepareWriterToGet(Writer writer) {
-        if(writer.getMiddleName().equals(Writer.WRITER_MIDDLE_NAME_NULL_VALUE)) {
-            writer.setMiddleName(null);
-        }
-        if(writer.getComment().equals(Writer.WRITER_COMMENT_NULL_VALUE)) {
-            writer.setComment(null);
-        }
-        return writer;
+        writerRepository.delete(writerForDelete);
+        log.debug(SERVICE_LOG_DELETE_ENTITY, id);
     }
 }
