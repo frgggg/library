@@ -25,7 +25,7 @@ public class Book {
     @Size(min = BOOK_INFO_NAME_LEN_MIN, max = BOOK_INFO_NAME_LEN_MAX)
     private String name;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "book_writers",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "writer_id")

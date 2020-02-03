@@ -7,11 +7,11 @@ import com.cft.focusstart.library.service.WriterService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
 import javax.validation.ConstraintViolationException;
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.cft.focusstart.library.exception.ServiceException.*;
+import static com.cft.focusstart.library.exception.ServiceException.serviceExceptionWrongEntity;
 import static com.cft.focusstart.library.log.messages.ServiceLogMessages.*;
 
 @Service
@@ -38,39 +39,35 @@ public class WriterServiceImpl implements WriterService {
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public Writer create(String firstName, String surname, String middleName, String comment) {
         Writer savedWriter;
         try {
             savedWriter = writerRepository.save(new Writer(firstName, surname, middleName, comment));
             entityManager.flush();
-        } catch (DataIntegrityViolationException | PersistenceException | ConstraintViolationException e) {
-            throw getSaveServiceException(SERVICE_NAME, (new Writer(firstName, surname, middleName, comment)).toString(), e);
-        } catch (Exception e) {
-            throw getUnknownServiceException(SERVICE_NAME, e);
+        } catch (ConstraintViolationException e) {
+            throw serviceExceptionWrongEntity(SERVICE_NAME, e.getConstraintViolations().iterator().next().getMessage());
+        } catch (PersistenceException e) {
+            throw serviceExceptionExistEntity(SERVICE_NAME);
         }
         log.debug(SERVICE_LOG_NEW_ENTITY, savedWriter);
         return savedWriter;
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public Writer updateById(Long id, String firstName, String surname, String middleName, String comment) {
-        Writer writerForUpdate = findById(id);
-        writerForUpdate.setFirstName(firstName);
-        writerForUpdate.setSurname(surname);
-        writerForUpdate.setMiddleName(middleName);
-        writerForUpdate.setComment(comment);
+
         Writer updatedWriter;
         try {
-            updatedWriter = writerRepository.save(writerForUpdate);
+            updatedWriter = writerRepository.updateById(id, firstName, surname, middleName, comment);
             entityManager.flush();
-        } catch (DataIntegrityViolationException | PersistenceException | ConstraintViolationException e) {
-            throw getUpdateServiceException(SERVICE_NAME, writerForUpdate.toString(), e);
-        } catch (Exception e) {
-            throw getUnknownServiceException(SERVICE_NAME, e);
+        } catch (ConstraintViolationException e) {
+            throw serviceExceptionWrongEntity(SERVICE_NAME, e.getConstraintViolations().iterator().next().getMessage());
+        } catch (PersistenceException e) {
+            throw serviceExceptionExistEntity(SERVICE_NAME);
         }
-        log.debug(SERVICE_LOG_UPDATE_ENTITY, updatedWriter.getId(), updatedWriter);
+        log.debug(SERVICE_LOG_UPDATE_ENTITY, id, updatedWriter);
         return updatedWriter;
     }
 
@@ -78,8 +75,9 @@ public class WriterServiceImpl implements WriterService {
     public Writer findById(Long id) throws SecurityException {
         Optional<Writer> optionalWriterForFind = writerRepository.findById(id);
         if(!optionalWriterForFind.isPresent()) {
-            throw getFindByIdServiceException(SERVICE_NAME, id);
+            throw serviceExceptionNoEntityWithId(SERVICE_NAME, id);
         }
+        log.debug(SERVICE_LOG_GET_ENTITY, id);
         return optionalWriterForFind.get();
     }
 
@@ -87,6 +85,7 @@ public class WriterServiceImpl implements WriterService {
     public List<Writer> findAll() {
         List<Writer> writers = new ArrayList<>();
         writerRepository.findAll().forEach(writers::add);
+        log.debug(SERVICE_LOG_GET_ALL_ENTITY);
         return writers;
     }
 
@@ -94,13 +93,11 @@ public class WriterServiceImpl implements WriterService {
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void deleteById(Long id) throws SecurityException {
-        Writer writerForDelete = findById(id);
-        if(writerForDelete.getBooks() != null) {
-            if(writerForDelete.getBooks().size() > 0) {
-                throw getDeleteByIdServiceException(SERVICE_NAME, writerForDelete.toString());
-            }
+        try {
+            writerRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw serviceExceptionNoEntityWithId(SERVICE_NAME, id);
         }
-        writerRepository.delete(writerForDelete);
         log.debug(SERVICE_LOG_DELETE_ENTITY, id);
     }
 }

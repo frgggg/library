@@ -1,9 +1,6 @@
 package com.cft.focusstart.library.service;
 
 import com.cft.focusstart.library.model.Writer;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 public interface WriterService {
