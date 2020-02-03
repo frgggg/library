@@ -58,9 +58,14 @@ public class WriterServiceImpl implements WriterService {
     @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public Writer updateById(Long id, String firstName, String surname, String middleName, String comment) {
 
+        Writer writerForUpdate = findById(id);
         Writer updatedWriter;
         try {
-            updatedWriter = writerRepository.updateById(id, firstName, surname, middleName, comment);
+            writerForUpdate.setSurname(surname);
+            writerForUpdate.setFirstName(firstName);
+            writerForUpdate.setComment(comment);
+            writerForUpdate.setMiddleName(middleName);
+            updatedWriter = writerRepository.save(writerForUpdate);
             entityManager.flush();
         } catch (ConstraintViolationException e) {
             throw serviceExceptionWrongEntity(SERVICE_NAME, e.getConstraintViolations().iterator().next().getMessage());
@@ -95,6 +100,7 @@ public class WriterServiceImpl implements WriterService {
     public void deleteById(Long id) throws SecurityException {
         try {
             writerRepository.deleteById(id);
+            //writerRepository.deleteWriterWithEmptyBooksListById(id);
         } catch (EmptyResultDataAccessException e) {
             throw serviceExceptionNoEntityWithId(SERVICE_NAME, id);
         }

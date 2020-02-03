@@ -9,7 +9,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WriterRepository extends CrudRepository<Writer, Long> {
 
-    @Modifying(clearAutomatically=true)
-    @Query("UPDATE Writer SET firstName = ?2, surname = ?3, middleName = ?4, comment = ?5 WHERE id = ?1")
-    Writer updateById(Long id, String firstName, String surname, String middleName, String comment);
 }

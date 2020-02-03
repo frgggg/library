@@ -60,6 +60,22 @@ public class WriterServiceImplTest {
     }
 
     @Test
+    public void updateNullFirstNameTest() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String updatedFirstName = TestStringFieldGenerator.getWrongNull();
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
+        writerService.updateById(createdWriterId, updatedFirstName, surname, middleName, comment);
+        testException = ExpectedException.none();
+    }
+
+    @Test
     public void createToLittleFirstNameTest() {
         String firstName = TestStringFieldGenerator.getToLittle(WRITER_FIRST_NAME_LEN_MIN);
         String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
