@@ -367,16 +367,18 @@ public class WriterServiceImplTest {
 
     @Test
     public void updateExistWriter() {
-        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String firstName1 = TestStringFieldGenerator.getRightByMin(WRITER_FIRST_NAME_LEN_MIN) + "_1";
+        String firstName2 = TestStringFieldGenerator.getRightByMin(WRITER_FIRST_NAME_LEN_MIN) + "_2";
         String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
         String middleName = TestStringFieldGenerator.getRightNull();
         String comment = TestStringFieldGenerator.getRightNull();
 
-        Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
+        Long createdWriter1Id = writerService.create(firstName1, surname, middleName, comment).getId();
+        Long createdWriter2Id = writerService.create(firstName2, surname, middleName, comment).getId();
 
         testException.expect(ServiceException.class);
         testException.expectMessage(SERVICE_EXCEPTION_EXIST_ENTITY_FORMAT_STRING);
-        writerService.updateById(createdWriterId, firstName, surname, middleName, comment);
+        writerService.updateById(createdWriter2Id, firstName1, surname, middleName, comment);
         testException = ExpectedException.none();
     }
 }
