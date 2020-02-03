@@ -17,6 +17,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.persistence.EntityManager;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.cft.focusstart.library.exception.ServiceException.serviceExceptionNoEntityWithId;
 import static com.cft.focusstart.library.model.Writer.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -159,5 +163,62 @@ public class WriterServiceImplTest {
         assertEquals(surname, savedWriter.getSurname());
         assertEquals(middleName, savedWriter.getMiddleName());
         assertEquals(comment, savedWriter.getComment());
+    }
+
+    @Test
+    public void findAllSuccess() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        Writer savedWriter = writerService.create(firstName, surname, middleName, comment);
+        List<Writer> list = writerService.findAll();
+        assertEquals(list.size(), 1);
+        Writer findWriter = list.get(0);
+        assertEquals(savedWriter.getId(), findWriter.getId());
+        assertEquals(savedWriter.getFirstName(), findWriter.getFirstName());
+        assertEquals(savedWriter.getSurname(), findWriter.getSurname());
+        assertEquals(savedWriter.getMiddleName(), findWriter.getMiddleName());
+        assertEquals(savedWriter.getComment(), findWriter.getComment());
+    }
+
+    @Test
+    public void findByIdSuccess() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        Writer savedWriter = writerService.create(firstName, surname, middleName, comment);
+        Writer findWriter = writerService.findById(savedWriter.getId());
+
+        assertEquals(savedWriter.getId(), findWriter.getId());
+        assertEquals(savedWriter.getFirstName(), findWriter.getFirstName());
+        assertEquals(savedWriter.getSurname(), findWriter.getSurname());
+        assertEquals(savedWriter.getMiddleName(), findWriter.getMiddleName());
+        assertEquals(savedWriter.getComment(), findWriter.getComment());
+    }
+
+    @Test
+    public void findByIdNotExistWriter() {
+        Long notExistWriterId = 333l;
+        String notExistWriterExceptionMessage = serviceExceptionNoEntityWithId(WriterServiceImpl.SERVICE_NAME, notExistWriterId).getMessage();
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(notExistWriterExceptionMessage);
+        writerService.findById(notExistWriterId);
+        testException = ExpectedException.none();
+    }
+
+    @Test
+    public void deleteByIdNotExistWriter() {
+        Long notExistWriterId = 333l;
+        String notExistWriterExceptionMessage = serviceExceptionNoEntityWithId(WriterServiceImpl.SERVICE_NAME, notExistWriterId).getMessage();
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(notExistWriterExceptionMessage);
+        writerService.deleteById(notExistWriterId);
+        testException = ExpectedException.none();
     }
 }
