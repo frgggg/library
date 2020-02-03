@@ -2,6 +2,7 @@ package com.cft.focusstart.library.service.impl;
 
 import com.cft.focusstart.library.exception.ServiceException;
 import com.cft.focusstart.library.model.Writer;
+import com.cft.focusstart.library.repository.BookRepository;
 import com.cft.focusstart.library.repository.WriterRepository;
 import com.cft.focusstart.library.util.TestStringFieldGenerator;
 import org.junit.Before;
@@ -18,9 +19,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.persistence.EntityManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static com.cft.focusstart.library.exception.ServiceException.serviceExceptionNoEntityWithId;
+import static com.cft.focusstart.library.exception.ServiceException.*;
+import static com.cft.focusstart.library.model.Book.BOOK_NAME_LEN_MAX;
 import static com.cft.focusstart.library.model.Writer.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -32,7 +35,10 @@ import static org.junit.Assert.assertNotNull;
 public class WriterServiceImplTest {
 
     WriterServiceImpl writerService;
+    BookServiceImpl bookService;
 
+    @Autowired
+    private BookRepository bookRepository;
     @Autowired
     private WriterRepository writerRepository;
     @Autowired
@@ -41,6 +47,7 @@ public class WriterServiceImplTest {
     @Before
     public void init() {
         writerService = new WriterServiceImpl(writerRepository, entityManager);
+        bookService = new BookServiceImpl(bookRepository, entityManager);
     }
 
     @Rule
@@ -56,22 +63,6 @@ public class WriterServiceImplTest {
         testException.expect(ServiceException.class);
         testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
         writerService.create(firstName, surname, middleName, comment);
-        testException = ExpectedException.none();
-    }
-
-    @Test
-    public void updateNullFirstNameTest() {
-        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
-        String updatedFirstName = TestStringFieldGenerator.getWrongNull();
-        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
-        String middleName = TestStringFieldGenerator.getRightNull();
-        String comment = TestStringFieldGenerator.getRightNull();
-
-        Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
-
-        testException.expect(ServiceException.class);
-        testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
-        writerService.updateById(createdWriterId, updatedFirstName, surname, middleName, comment);
         testException = ExpectedException.none();
     }
 
@@ -189,9 +180,9 @@ public class WriterServiceImplTest {
         String comment = TestStringFieldGenerator.getRightNull();
 
         Writer savedWriter = writerService.create(firstName, surname, middleName, comment);
-        List<Writer> list = writerService.findAll();
-        assertEquals(list.size(), 1);
-        Writer findWriter = list.get(0);
+        List<Writer> writerList = writerService.findAll();
+        assertEquals(writerList.size(), 1);
+        Writer findWriter = writerList.get(0);
         assertEquals(savedWriter.getId(), findWriter.getId());
         assertEquals(savedWriter.getFirstName(), findWriter.getFirstName());
         assertEquals(savedWriter.getSurname(), findWriter.getSurname());
@@ -230,11 +221,162 @@ public class WriterServiceImplTest {
     @Test
     public void deleteByIdNotExistWriter() {
         Long notExistWriterId = 333l;
-        String notExistWriterExceptionMessage = serviceExceptionNoEntityWithId(WriterServiceImpl.SERVICE_NAME, notExistWriterId).getMessage();
+        String notExistWriterExceptionMessage =
+                serviceExceptionNoEntityWithId(WriterServiceImpl.SERVICE_NAME, notExistWriterId)
+                        .getMessage();
 
         testException.expect(ServiceException.class);
         testException.expectMessage(notExistWriterExceptionMessage);
         writerService.deleteById(notExistWriterId);
+        testException = ExpectedException.none();
+    }
+
+    @Test
+    public void deleteByIdRelatedWriter() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+        Writer savedWriter = writerService.create(firstName, surname, middleName, comment);
+
+        String bookName = TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX);
+        bookService.create(bookName, Collections.singletonList(savedWriter));
+
+        String exceptionMessage =
+                serviceExceptionDeleteRelatedEntity(WriterServiceImpl.SERVICE_NAME, WRITER_BOOKS_FIELD_NAME)
+                        .getMessage();
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(exceptionMessage);
+        writerService.deleteById(savedWriter.getId());
+        testException = ExpectedException.none();
+    }
+
+    @Test
+    public void deleteSuccess() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        assertEquals(writerService.findAll().size(), 0);
+
+        Long savedWriterId = writerService.create(firstName, surname, middleName, comment).getId();
+        assertEquals(writerService.findAll().size(), 1);
+
+        writerService.deleteById(savedWriterId);
+        assertEquals(writerService.findAll().size(), 0);
+
+    }
+
+    @Test
+    public void updateNullFirstNameTest() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
+        String updatedFirstName = TestStringFieldGenerator.getWrongNull();
+        writerService.updateById(createdWriterId, updatedFirstName, surname, middleName, comment);
+        testException = ExpectedException.none();
+    }
+
+    @Test
+    public void updateToLittleFirstNameTest() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
+        String updatedFirstName = TestStringFieldGenerator.getToLittle(WRITER_FIRST_NAME_LEN_MIN);
+        writerService.updateById(createdWriterId, updatedFirstName, surname, middleName, comment);
+        testException = ExpectedException.none();
+    }
+
+    @Test
+    public void updateToBigFirstNameTest() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
+        String updatedFirstName = TestStringFieldGenerator.getToBig(WRITER_FIRST_NAME_LEN_MAX);
+        writerService.updateById(createdWriterId, updatedFirstName, surname, middleName, comment);
+        testException = ExpectedException.none();
+    }
+
+    @Test
+    public void updateNullSurnameTest() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
+        String updatedSurname = TestStringFieldGenerator.getWrongNull();
+        writerService.updateById(createdWriterId, firstName, updatedSurname, middleName, comment);
+        testException = ExpectedException.none();
+    }
+
+    @Test
+    public void updateToLittleSurnameTest() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
+        String updatedSurname = TestStringFieldGenerator.getToLittle(WRITER_FIRST_NAME_LEN_MIN);
+        writerService.updateById(createdWriterId, firstName, updatedSurname, middleName, comment);
+        testException = ExpectedException.none();
+    }
+
+    @Test
+    public void updateToBigSurnameTest() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
+        String updatedSurname = TestStringFieldGenerator.getToBig(WRITER_FIRST_NAME_LEN_MAX);
+        writerService.updateById(createdWriterId, firstName, updatedSurname, middleName, comment);
+        testException = ExpectedException.none();
+    }
+
+    @Test
+    public void updateExistWriter() {
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(SERVICE_EXCEPTION_EXIST_ENTITY_FORMAT_STRING);
+        writerService.updateById(createdWriterId, firstName, surname, middleName, comment);
         testException = ExpectedException.none();
     }
 }

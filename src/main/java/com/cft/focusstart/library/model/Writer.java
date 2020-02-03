@@ -42,6 +42,8 @@ public class Writer {
             WRITER_COMMENT_FIELD_NAME + STRING_FIELD_MAX + WRITER_COMMENT_LEN_MAX;
     public static final String WRITER_COMMENT_NULL_VALUE = "\n";
 
+    public static final String WRITER_BOOKS_FIELD_NAME = "books";
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -65,7 +67,7 @@ public class Writer {
     private String comment;
 
     @ToString.Exclude
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "writers")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "writers", cascade = CascadeType.ALL)
     private List<Book> books;
 
     protected Writer() {}

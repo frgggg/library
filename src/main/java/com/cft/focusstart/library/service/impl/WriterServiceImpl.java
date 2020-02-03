@@ -22,6 +22,7 @@ import java.util.Optional;
 import static com.cft.focusstart.library.exception.ServiceException.*;
 import static com.cft.focusstart.library.exception.ServiceException.serviceExceptionWrongEntity;
 import static com.cft.focusstart.library.log.messages.ServiceLogMessages.*;
+import static com.cft.focusstart.library.model.Writer.WRITER_BOOKS_FIELD_NAME;
 
 @Service
 @Slf4j
@@ -100,9 +101,11 @@ public class WriterServiceImpl implements WriterService {
     public void deleteById(Long id) throws SecurityException {
         try {
             writerRepository.deleteById(id);
-            //writerRepository.deleteWriterWithEmptyBooksListById(id);
+            entityManager.flush();
         } catch (EmptyResultDataAccessException e) {
             throw serviceExceptionNoEntityWithId(SERVICE_NAME, id);
+        } catch (PersistenceException e){
+            throw serviceExceptionDeleteRelatedEntity(SERVICE_NAME, WRITER_BOOKS_FIELD_NAME);
         }
         log.debug(SERVICE_LOG_DELETE_ENTITY, id);
     }
