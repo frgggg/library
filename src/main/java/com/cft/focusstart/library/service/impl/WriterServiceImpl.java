@@ -1,12 +1,12 @@
 package com.cft.focusstart.library.service.impl;
 
 import com.cft.focusstart.library.exception.ServiceException;
+import com.cft.focusstart.library.model.Book;
 import com.cft.focusstart.library.model.Writer;
 import com.cft.focusstart.library.repository.WriterRepository;
 import com.cft.focusstart.library.service.WriterService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -62,10 +62,10 @@ public class WriterServiceImpl implements WriterService {
         Writer writerForUpdate = findById(id);
         Writer updatedWriter;
         try {
-            writerForUpdate.setSurname(surname);
             writerForUpdate.setFirstName(firstName);
-            writerForUpdate.setComment(comment);
+            writerForUpdate.setSurname(surname);
             writerForUpdate.setMiddleName(middleName);
+            writerForUpdate.setComment(comment);
             updatedWriter = writerRepository.save(writerForUpdate);
             entityManager.flush();
         } catch (ConstraintViolationException e) {
@@ -78,7 +78,7 @@ public class WriterServiceImpl implements WriterService {
     }
 
     @Override
-    public Writer findById(Long id) throws SecurityException {
+    public Writer findById(Long id) {
         Optional<Writer> optionalWriterForFind = writerRepository.findById(id);
         if(!optionalWriterForFind.isPresent()) {
             throw serviceExceptionNoEntityWithId(SERVICE_NAME, id);
@@ -97,15 +97,21 @@ public class WriterServiceImpl implements WriterService {
 
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void deleteById(Long id) throws SecurityException {
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
+    public void deleteById(Long id) {
+
+        Writer writerForDelete = findById(id);
+        List<Book> books = writerForDelete.getBooks();
+        if(books != null) {
+            if(books.size() > 0) {
+                throw serviceExceptionDeleteOrUpdateRelatedEntity(SERVICE_NAME, WRITER_BOOKS_FIELD_NAME);
+            }
+        }
         try {
             writerRepository.deleteById(id);
             entityManager.flush();
         } catch (EmptyResultDataAccessException e) {
             throw serviceExceptionNoEntityWithId(SERVICE_NAME, id);
-        } catch (PersistenceException e){
-            throw serviceExceptionDeleteRelatedEntity(SERVICE_NAME, WRITER_BOOKS_FIELD_NAME);
         }
         log.debug(SERVICE_LOG_DELETE_ENTITY, id);
     }

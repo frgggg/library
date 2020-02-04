@@ -14,6 +14,7 @@ public class ServiceException extends RuntimeException {
     public static final String SERVICE_EXCEPTION_ENTITY_WITH_RELATED_FIELD_FORMAT_STRING = "entity have related field with name %s";
     public static final String SERVICE_EXCEPTION_WRONG_ENTITY_FORMAT_STRING = "save/update wrong entity: %s";
     public static final String SERVICE_EXCEPTION_EXIST_ENTITY_FORMAT_STRING = "save/update exist entity";
+    public static final String SERVICE_EXCEPTION_SET_WRONG_SUB_ENTITY_FORMAT_STRING = "can't set sub entity with id = %d and wrong field %s = %s";
 
     @Getter
     private String serviceName = SERVICE_EXCEPTION_SERVICE_NAME_DEFAULT_VALUE;
@@ -61,12 +62,24 @@ public class ServiceException extends RuntimeException {
         );
     }
 
-    public static ServiceException serviceExceptionDeleteRelatedEntity(String service, String relatedFieldName) {
+    public static ServiceException serviceExceptionDeleteOrUpdateRelatedEntity(String service, String relatedFieldName) {
         return new ServiceException(
                 service,
                 String.format(
                         SERVICE_EXCEPTION_ENTITY_WITH_RELATED_FIELD_FORMAT_STRING,
                         relatedFieldName
+                )
+        );
+    }
+
+    public static ServiceException serviceExceptionSetWrongSubEntity(String service, Long id, String wrongField, String wrongStatus) {
+        return new ServiceException(
+                service,
+                String.format(
+                        SERVICE_EXCEPTION_SET_WRONG_SUB_ENTITY_FORMAT_STRING,
+                        id,
+                        wrongField,
+                        wrongStatus
                 )
         );
     }

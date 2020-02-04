@@ -6,6 +6,7 @@ import lombok.ToString;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.cft.focusstart.library.model.util.ValidationMessages.*;
@@ -67,8 +68,8 @@ public class Writer {
     private String comment;
 
     @ToString.Exclude
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "writers", cascade = CascadeType.ALL)
-    private List<Book> books;
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "writers", cascade = CascadeType.REMOVE)
+    private List<Book> books = new ArrayList<>();
 
     protected Writer() {}
 

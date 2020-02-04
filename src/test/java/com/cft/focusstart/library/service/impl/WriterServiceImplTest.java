@@ -11,14 +11,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.persistence.EntityManager;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,30 +25,31 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringRunner.class)
-@DataJpaTest
+@SpringBootTest
 @TestPropertySource(locations = "classpath:application-test.properties")
-@AutoConfigureTestDatabase(replace= AutoConfigureTestDatabase.Replace.NONE)
 public class WriterServiceImplTest {
 
+    @Autowired
     WriterServiceImpl writerService;
+    @Autowired
     BookServiceImpl bookService;
 
     @Autowired
-    private BookRepository bookRepository;
+    WriterRepository writerRepository;
     @Autowired
-    private WriterRepository writerRepository;
-    @Autowired
-    private EntityManager entityManager;
+    BookRepository bookRepository;
 
     @Before
     public void init() {
-        writerService = new WriterServiceImpl(writerRepository, entityManager);
-        bookService = new BookServiceImpl(bookRepository, entityManager);
+        writerRepository.deleteAll();
+        bookRepository.deleteAll();
+
     }
 
     @Rule
     public ExpectedException testException = ExpectedException.none();
 
+    // CREATE
     @Test
     public void createNullFirstNameTest() {
         String firstName = TestStringFieldGenerator.getWrongNull();
@@ -158,6 +155,21 @@ public class WriterServiceImplTest {
     }
 
     @Test
+    public void createExistWriter() {
+        String firstName = TestStringFieldGenerator.getRightByMin(WRITER_FIRST_NAME_LEN_MIN);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightNull();
+        String comment = TestStringFieldGenerator.getRightNull();
+
+        writerService.create(firstName, surname, middleName, comment);
+
+        testException.expect(ServiceException.class);
+        testException.expectMessage(SERVICE_EXCEPTION_EXIST_ENTITY_FORMAT_STRING);
+        writerService.create(firstName, surname, middleName, comment);
+        testException = ExpectedException.none();
+    }
+
+    @Test
     public void createSuccess() {
         String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
         String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
@@ -172,6 +184,7 @@ public class WriterServiceImplTest {
         assertEquals(comment, savedWriter.getComment());
     }
 
+    // FIND ALL
     @Test
     public void findAllSuccess() {
         String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
@@ -190,6 +203,7 @@ public class WriterServiceImplTest {
         assertEquals(savedWriter.getComment(), findWriter.getComment());
     }
 
+    // FIND BY ID
     @Test
     public void findByIdSuccess() {
         String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
@@ -218,6 +232,7 @@ public class WriterServiceImplTest {
         testException = ExpectedException.none();
     }
 
+    // DELETE BY ID
     @Test
     public void deleteByIdNotExistWriter() {
         Long notExistWriterId = 333l;
@@ -240,10 +255,10 @@ public class WriterServiceImplTest {
         Writer savedWriter = writerService.create(firstName, surname, middleName, comment);
 
         String bookName = TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX);
-        bookService.create(bookName, Collections.singletonList(savedWriter));
+        bookService.create(bookName, Collections.singletonList(savedWriter.getId()));
 
         String exceptionMessage =
-                serviceExceptionDeleteRelatedEntity(WriterServiceImpl.SERVICE_NAME, WRITER_BOOKS_FIELD_NAME)
+                serviceExceptionDeleteOrUpdateRelatedEntity(WriterServiceImpl.SERVICE_NAME, WRITER_BOOKS_FIELD_NAME)
                         .getMessage();
 
         testException.expect(ServiceException.class);
@@ -269,6 +284,7 @@ public class WriterServiceImplTest {
 
     }
 
+    // UPDATE
     @Test
     public void updateNullFirstNameTest() {
         String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
@@ -327,7 +343,7 @@ public class WriterServiceImplTest {
         Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
 
         testException.expect(ServiceException.class);
-        testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
+        testException.expectMessage(WRITER_SURNAME_VALIDATION_MESSAGE);
         String updatedSurname = TestStringFieldGenerator.getWrongNull();
         writerService.updateById(createdWriterId, firstName, updatedSurname, middleName, comment);
         testException = ExpectedException.none();
@@ -343,8 +359,8 @@ public class WriterServiceImplTest {
         Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
 
         testException.expect(ServiceException.class);
-        testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
-        String updatedSurname = TestStringFieldGenerator.getToLittle(WRITER_FIRST_NAME_LEN_MIN);
+        testException.expectMessage(WRITER_SURNAME_VALIDATION_MESSAGE);
+        String updatedSurname = TestStringFieldGenerator.getToLittle(WRITER_SURNAME_LEN_MIN);
         writerService.updateById(createdWriterId, firstName, updatedSurname, middleName, comment);
         testException = ExpectedException.none();
     }
@@ -359,26 +375,26 @@ public class WriterServiceImplTest {
         Long createdWriterId = writerService.create(firstName, surname, middleName, comment).getId();
 
         testException.expect(ServiceException.class);
-        testException.expectMessage(WRITER_FIRST_NAME_VALIDATION_MESSAGE);
-        String updatedSurname = TestStringFieldGenerator.getToBig(WRITER_FIRST_NAME_LEN_MAX);
+        testException.expectMessage(WRITER_SURNAME_VALIDATION_MESSAGE);
+        String updatedSurname = TestStringFieldGenerator.getToBig(WRITER_SURNAME_LEN_MAX);
         writerService.updateById(createdWriterId, firstName, updatedSurname, middleName, comment);
         testException = ExpectedException.none();
     }
 
     @Test
     public void updateExistWriter() {
-        String firstName1 = TestStringFieldGenerator.getRightByMin(WRITER_FIRST_NAME_LEN_MIN) + "_1";
-        String firstName2 = TestStringFieldGenerator.getRightByMin(WRITER_FIRST_NAME_LEN_MIN) + "_2";
+        String writerOneFirstName = TestStringFieldGenerator.getRightByMin(WRITER_FIRST_NAME_LEN_MIN) + "_1";
+        String writerTwoFirstName = TestStringFieldGenerator.getRightByMin(WRITER_FIRST_NAME_LEN_MIN) + "_2";
         String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
         String middleName = TestStringFieldGenerator.getRightNull();
         String comment = TestStringFieldGenerator.getRightNull();
 
-        Long createdWriter1Id = writerService.create(firstName1, surname, middleName, comment).getId();
-        Long createdWriter2Id = writerService.create(firstName2, surname, middleName, comment).getId();
+        writerService.create(writerOneFirstName, surname, middleName, comment);
+        Long writerTwoId = writerService.create(writerTwoFirstName, surname, middleName, comment).getId();
 
         testException.expect(ServiceException.class);
         testException.expectMessage(SERVICE_EXCEPTION_EXIST_ENTITY_FORMAT_STRING);
-        writerService.updateById(createdWriter2Id, firstName1, surname, middleName, comment);
+        writerService.updateById(writerTwoId, writerOneFirstName, surname, middleName, comment);
         testException = ExpectedException.none();
     }
 }
