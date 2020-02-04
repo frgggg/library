@@ -80,7 +80,7 @@ public class BookServiceImpl implements BookService {
         Reader reader = readerService.findById(readerId);
 
         if(reader.getDebtor()) {
-            serviceExceptionSetWrongSubEntity(SERVICE_NAME, readerId, READER_IS_DEBTOR_FIELD_NAME, reader.getDebtor().toString());
+            throw serviceExceptionSetWrongSubEntity(SERVICE_NAME, readerId, READER_IS_DEBTOR_FIELD_NAME, reader.getDebtor().toString());
         }
 
         if(bookForUpdate.getReader() != null) {
