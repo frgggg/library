@@ -1,5 +1,6 @@
 package com.cft.focusstart.library.service.impl;
 
+import com.cft.focusstart.library.exception.ServiceException;
 import com.cft.focusstart.library.model.Book;
 import com.cft.focusstart.library.model.Reader;
 import com.cft.focusstart.library.repository.ReaderRepository;
@@ -9,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
@@ -38,6 +41,7 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public Reader create(String name) {
         Reader savedReader;
         try {
@@ -46,6 +50,7 @@ public class ReaderServiceImpl implements ReaderService {
         } catch (ConstraintViolationException e) {
             throw serviceExceptionWrongEntity(SERVICE_NAME, e.getConstraintViolations().iterator().next().getMessage());
         } catch (PersistenceException e) {
+            System.out.println(e.getMessage());
             throw serviceExceptionExistEntity(SERVICE_NAME);
         }
         log.debug(SERVICE_LOG_NEW_ENTITY, savedReader);
@@ -71,6 +76,7 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public Reader updateById(Long id, String name) {
         Reader readerForUpdate = findById(id);
         Reader updatedReader;
@@ -89,6 +95,7 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public void deleteById(Long id) {
         Reader readerForDelete = findById(id);
         List<Book> books = readerForDelete.getBooks();
@@ -107,6 +114,7 @@ public class ReaderServiceImpl implements ReaderService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public void refreshDebtorStatus(Long id) {
         Reader readerForUpdateReaderStatus = findById(id);
         List<Book> books = readerForUpdateReaderStatus.getBooks();

@@ -14,7 +14,6 @@ import static com.cft.focusstart.library.model.util.ValidationMessages.STRING_FI
 @Entity
 @Table(name = "readers")
 public class Reader {
-    public static final String READER_ID_PARAM_NAME = "id";
 
     public static final String READER_NAME_FIELD_NAME = "name";
     public static final int READER_NAME_LEN_MIN = 1;
@@ -36,7 +35,7 @@ public class Reader {
     @Size(min = READER_NAME_LEN_MIN, max = READER_NAME_LEN_MAX, message = READER_NAME_VALIDATION_MESSAGE)
     private String name;
 
-    @Column(name = "is_debtor", length = READER_NAME_LEN_MAX, nullable = false)
+    @Column(name = "is_debtor", nullable = false)
     private Boolean isDebtor;
 
     @ToString.Exclude

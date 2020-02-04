@@ -60,12 +60,9 @@ public class BookServiceImpl implements BookService {
     @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public Book create(String name, List<Long> writersIds) {
         Book savedBook;
-        HashSet<Writer> writers = new HashSet<>();
-        for(int i = 0; i < writersIds.size(); i++)
-            writers.add(writerService.findById(writersIds.get(i)));
 
         try {
-            savedBook = bookRepository.save(new Book(name, new ArrayList<Writer>(writers)));
+            savedBook = bookRepository.save(new Book(name, getWritersByIds(writersIds)));
             entityManager.flush();
         } catch (ConstraintViolationException e) {
             throw serviceExceptionWrongEntity(SERVICE_NAME, e.getConstraintViolations().iterator().next().getMessage());
@@ -77,6 +74,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public void setReader(Long bookId, Long readerId) {
         Book bookForUpdate = findById(bookId);
         Reader reader = readerService.findById(readerId);
@@ -102,6 +100,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public void unsetReader(Long id) {
         Book bookForUpdate = findById(id);
         bookForUpdate.setReader(null);
@@ -129,6 +128,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public void deleteById(Long id) {
         Book bookForDelete = findById(id);
         if(bookForDelete.getReader() != null) {
@@ -145,17 +145,14 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = ServiceException.class)
     public Book updateById(Long id, String name, List<Long> writersIds) {
         Book bookForUpdate = findById(id);
         Book updatedBook;
 
-        HashSet<Writer> writers = new HashSet<>();
-        for(int i = 0; i < writersIds.size(); i++)
-            writers.add(writerService.findById(writersIds.get(i)));
-
         try {
             bookForUpdate.setName(name);
-            bookForUpdate.setWriters(new ArrayList<Writer>(writers));
+            bookForUpdate.setWriters(getWritersByIds(writersIds));
             updatedBook = bookRepository.save(bookForUpdate);
             entityManager.flush();
         } catch (ConstraintViolationException e) {
@@ -165,5 +162,13 @@ public class BookServiceImpl implements BookService {
         }
         log.debug(SERVICE_LOG_UPDATE_ENTITY, id, updatedBook);
         return updatedBook;
+    }
+
+    private ArrayList<Writer> getWritersByIds(List<Long> writersIds) {
+        HashSet<Writer> writers = new HashSet<>();
+        for(int i = 0; i < writersIds.size(); i++)
+            writers.add(writerService.findById(writersIds.get(i)));
+
+        return new ArrayList<Writer>(writers);
     }
 }

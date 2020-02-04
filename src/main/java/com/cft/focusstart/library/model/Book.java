@@ -48,7 +48,7 @@ public class Book {
     @NotEmpty(message = BOOK_WRITERS_VALIDATION_MESSAGE)
     private List<Writer> writers = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "books_reader",
             joinColumns = @JoinColumn(name = "book_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "reader_id", referencedColumnName = "id")

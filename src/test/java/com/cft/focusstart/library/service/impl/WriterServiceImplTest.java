@@ -30,14 +30,14 @@ import static org.junit.Assert.assertNotNull;
 public class WriterServiceImplTest {
 
     @Autowired
-    WriterServiceImpl writerService;
+    private WriterServiceImpl writerService;
     @Autowired
-    BookServiceImpl bookService;
+    private BookServiceImpl bookService;
 
     @Autowired
-    WriterRepository writerRepository;
+    private WriterRepository writerRepository;
     @Autowired
-    BookRepository bookRepository;
+    private BookRepository bookRepository;
 
     @Before
     public void init() {
