@@ -39,7 +39,7 @@ public class Reader {
     private Boolean isDebtor;
 
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "reader", cascade = CascadeType.DETACH)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "reader", cascade = CascadeType.REMOVE)
     private List<Book> books;
 
     protected Reader() {}

@@ -7,7 +7,6 @@ import com.cft.focusstart.library.model.Writer;
 import com.cft.focusstart.library.repository.BookRepository;
 import com.cft.focusstart.library.repository.ReaderRepository;
 import com.cft.focusstart.library.repository.WriterRepository;
-import com.cft.focusstart.library.service.BookService;
 import com.cft.focusstart.library.util.TestStringFieldGenerator;
 import org.junit.Before;
 import org.junit.Rule;
@@ -60,7 +59,7 @@ public class BookServiceImplTest {
     @Rule
     public ExpectedException testException = ExpectedException.none();
 
-    public Writer addWriterToWriterService() {
+    public Writer utilAddWriterToWriterService() {
         return writerService.create(
                 TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX),
                 TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX),
@@ -68,14 +67,14 @@ public class BookServiceImplTest {
                 TestStringFieldGenerator.getRightNull());
     }
 
-    public Book addBookToBookService(Long writerId) {
+    public Book utilAddBookToBookService(Long writerId) {
         return bookService.create(TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX), Collections.singletonList(writerId));
     }
 
     // CREATE
     @Test
     public void createNullNameTest() {
-        Writer existWriter = addWriterToWriterService();
+        Writer existWriter = utilAddWriterToWriterService();
 
         String name = TestStringFieldGenerator.getWrongNull();
         List<Long> writersIds = Collections.singletonList(existWriter.getId());
@@ -88,7 +87,7 @@ public class BookServiceImplTest {
 
     @Test
     public void createToLittleNameTest() {
-        Writer existWriter = addWriterToWriterService();
+        Writer existWriter = utilAddWriterToWriterService();
 
         String name = TestStringFieldGenerator.getToLittle(BOOK_NAME_LEN_MIN);
         List<Long> writersIds = Collections.singletonList(existWriter.getId());
@@ -101,7 +100,7 @@ public class BookServiceImplTest {
 
     @Test
     public void createToBigNameTest() {
-        Writer existWriter = addWriterToWriterService();
+        Writer existWriter = utilAddWriterToWriterService();
 
         String name = TestStringFieldGenerator.getToBig(BOOK_NAME_LEN_MAX);
         List<Long> writersIds = Collections.singletonList(existWriter.getId());
@@ -128,7 +127,7 @@ public class BookServiceImplTest {
 
     @Test
     public void createSuccessTest() {
-        Writer existWriter = addWriterToWriterService();
+        Writer existWriter = utilAddWriterToWriterService();
 
         String name = TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX);
         List<Long> writersIds = Collections.singletonList(existWriter.getId());
@@ -145,7 +144,7 @@ public class BookServiceImplTest {
     // FIND ALL
     @Test
     public void findAllSuccessTest() {
-        Writer existWriter = addWriterToWriterService();
+        Writer existWriter = utilAddWriterToWriterService();
 
         String name = TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX);
         List<Long> writersIds = Collections.singletonList(existWriter.getId());
@@ -168,7 +167,7 @@ public class BookServiceImplTest {
     // FIND BY ID
     @Test
     public void findByIdSuccessTest() {
-        Writer existWriter = addWriterToWriterService();
+        Writer existWriter = utilAddWriterToWriterService();
 
         String name = TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX);
         List<Long> writersIds = Collections.singletonList(existWriter.getId());
@@ -211,7 +210,7 @@ public class BookServiceImplTest {
 
     @Test
     public void deleteByIdBusyBookTest() {
-        Writer existWriter = addWriterToWriterService();
+        Writer existWriter = utilAddWriterToWriterService();
         Reader reader = readerService.create(TestStringFieldGenerator.getRightByMax(READER_NAME_LEN_MAX));
 
         String name = TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX);
@@ -231,8 +230,8 @@ public class BookServiceImplTest {
     // UPDATE BY ID
     @Test
     public void updateByIdNullNameTest() {
-        Writer existWriter = addWriterToWriterService();
-        Book existBook = addBookToBookService(existWriter.getId());
+        Writer existWriter = utilAddWriterToWriterService();
+        Book existBook = utilAddBookToBookService(existWriter.getId());
 
         testException.expect(ServiceException.class);
         testException.expectMessage(BOOK_NAME_VALIDATION_MESSAGE);
@@ -243,8 +242,8 @@ public class BookServiceImplTest {
 
     @Test
     public void updateByIdToLittleNameTest() {
-        Writer existWriter = addWriterToWriterService();
-        Book existBook = addBookToBookService(existWriter.getId());
+        Writer existWriter = utilAddWriterToWriterService();
+        Book existBook = utilAddBookToBookService(existWriter.getId());
 
         testException.expect(ServiceException.class);
         testException.expectMessage(BOOK_NAME_VALIDATION_MESSAGE);
@@ -255,8 +254,8 @@ public class BookServiceImplTest {
 
     @Test
     public void updateByIdToBigNameTest() {
-        Writer existWriter = addWriterToWriterService();
-        Book existBook = addBookToBookService(existWriter.getId());
+        Writer existWriter = utilAddWriterToWriterService();
+        Book existBook = utilAddBookToBookService(existWriter.getId());
 
         testException.expect(ServiceException.class);
         testException.expectMessage(BOOK_NAME_VALIDATION_MESSAGE);
@@ -267,8 +266,8 @@ public class BookServiceImplTest {
 
     @Test
     public void updateByIdNotExistWriterTest() {
-        Writer existWriter = addWriterToWriterService();
-        Book existBook = addBookToBookService(existWriter.getId());
+        Writer existWriter = utilAddWriterToWriterService();
+        Book existBook = utilAddBookToBookService(existWriter.getId());
         Long notExistWriterId = 333l;
         String notExistWriterExceptionMessage = serviceExceptionNoEntityWithId(WriterServiceImpl.SERVICE_NAME, notExistWriterId).getMessage();
 
@@ -281,7 +280,7 @@ public class BookServiceImplTest {
     // SET READER
     @Test
     public void setReaderSuccess() {
-        Writer existWriter = addWriterToWriterService();
+        Writer existWriter = utilAddWriterToWriterService();
         Reader reader = readerService.create(TestStringFieldGenerator.getRightByMax(READER_NAME_LEN_MAX));
 
         String name = TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX);
