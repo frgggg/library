@@ -2,6 +2,7 @@ package com.cft.focusstart.library.controller;
 
 import com.cft.focusstart.library.controller.util.ControllerUtil;
 import com.cft.focusstart.library.dto.WriterDto;
+import com.cft.focusstart.library.model.Book;
 import com.cft.focusstart.library.model.Writer;
 import com.cft.focusstart.library.repository.WriterRepository;
 import com.cft.focusstart.library.service.impl.WriterServiceImpl;
@@ -21,8 +22,7 @@ import javax.persistence.PersistenceException;
 import java.util.Collections;
 import java.util.Optional;
 
-import static com.cft.focusstart.library.exception.ServiceException.SERVICE_EXCEPTION_EXIST_ENTITY_FORMAT_STRING;
-import static com.cft.focusstart.library.exception.ServiceException.serviceExceptionNoEntityWithId;
+import static com.cft.focusstart.library.exception.ServiceException.*;
 import static org.mockito.Mockito.*;
 
 import static com.cft.focusstart.library.model.Writer.*;
@@ -278,6 +278,26 @@ public class WriterRestTest {
         String comment = TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX);
         Writer outWriter = new Writer(firstName, surname, middleName, comment);
         outWriter.setId(existWriterId);
+
+        when(mockWriterRepository.findById(existWriterId)).thenReturn(Optional.of(outWriter));
+        ControllerUtil.testUtilDelete(mockMvc, url, answer, resultMatcherStatus);
+        verify(mockWriterRepository).findById(existWriterId);
+    }
+
+    @Test
+    public void deleteWriterRelatedTest() throws Exception {
+        Long existWriterId = 1l;
+        String url = WRITER_REST_TEST_BASE_URL + "/" + existWriterId;
+        String answer = serviceExceptionDeleteOrUpdateRelatedEntity(WriterServiceImpl.SERVICE_NAME, WRITER_BOOKS_FIELD_NAME).getMessage();
+        ResultMatcher resultMatcherStatus = status().isBadRequest();
+
+        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
+        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
+        String middleName = TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX);
+        String comment = TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX);
+        Writer outWriter = new Writer(firstName, surname, middleName, comment);
+        outWriter.setId(existWriterId);
+        outWriter.setBooks(Collections.singletonList(new Book(null, null)));
 
         when(mockWriterRepository.findById(existWriterId)).thenReturn(Optional.of(outWriter));
         ControllerUtil.testUtilDelete(mockMvc, url, answer, resultMatcherStatus);
