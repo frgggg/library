@@ -41,9 +41,7 @@ public class ReaderRest {
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
     public ReaderDto createReader(@Validated @RequestBody ReaderDto readerDto) {
-        Reader reader = readerService.create(
-                readerDto.getName()
-        );
+        Reader reader = readerService.create(readerDto.getName());
         return modelMapper.map(reader, ReaderDto.class);
     }
 
@@ -51,10 +49,7 @@ public class ReaderRest {
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public ReaderDto updateReader(@Validated @RequestBody ReaderDto readerDto, @PathVariable("id") Long id) {
-        Reader reader = readerService.updateById(
-                id,
-                readerDto.getName()
-        );
+        Reader reader = readerService.updateById(id, readerDto.getName());
         return modelMapper.map(reader, ReaderDto.class);
     }
 
