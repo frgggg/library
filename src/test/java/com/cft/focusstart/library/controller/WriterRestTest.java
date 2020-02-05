@@ -1,9 +1,7 @@
 package com.cft.focusstart.library.controller;
 
-import com.cft.focusstart.library.controller.util.ControllerUtil;
+import com.cft.focusstart.library.controller.util.AllControllerUtil;
 import com.cft.focusstart.library.dto.WriterDto;
-import com.cft.focusstart.library.model.Book;
-import com.cft.focusstart.library.model.Writer;
 import com.cft.focusstart.library.repository.WriterRepository;
 import com.cft.focusstart.library.service.impl.WriterServiceImpl;
 import com.cft.focusstart.library.util.TestStringFieldGenerator;
@@ -22,6 +20,7 @@ import javax.persistence.PersistenceException;
 import java.util.Collections;
 import java.util.Optional;
 
+import static com.cft.focusstart.library.controller.util.WriterRestTestUtil.*;
 import static com.cft.focusstart.library.exception.ServiceException.*;
 import static org.mockito.Mockito.*;
 
@@ -64,13 +63,13 @@ public class WriterRestTest {
         inWriterDtoWrongFirstName.setComment(TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX));
 
         inWriterDtoWrongFirstName.setFirstName(TestStringFieldGenerator.getWrongNull());
-        ControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongFirstName, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongFirstName, answer, resultMatcherStatus);
 
         inWriterDtoWrongFirstName.setFirstName(TestStringFieldGenerator.getToBig(WRITER_FIRST_NAME_LEN_MAX));
-        ControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongFirstName, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongFirstName, answer, resultMatcherStatus);
 
         inWriterDtoWrongFirstName.setFirstName(TestStringFieldGenerator.getToLittle(WRITER_FIRST_NAME_LEN_MIN));
-        ControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongFirstName, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongFirstName, answer, resultMatcherStatus);
     }
 
     @Test
@@ -85,13 +84,13 @@ public class WriterRestTest {
         inWriterDtoWrongSurname.setComment(TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX));
 
         inWriterDtoWrongSurname.setSurname(TestStringFieldGenerator.getWrongNull());
-        ControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongSurname, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongSurname, answer, resultMatcherStatus);
 
         inWriterDtoWrongSurname.setSurname(TestStringFieldGenerator.getToBig(WRITER_SURNAME_LEN_MAX));
-        ControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongSurname, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongSurname, answer, resultMatcherStatus);
 
         inWriterDtoWrongSurname.setSurname(TestStringFieldGenerator.getToLittle(WRITER_SURNAME_LEN_MIN));
-        ControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongSurname, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongSurname, answer, resultMatcherStatus);
     }
 
     @Test
@@ -106,7 +105,7 @@ public class WriterRestTest {
         inWriterDtoWrongMiddleName.setComment(TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX));
 
         inWriterDtoWrongMiddleName.setMiddleName(TestStringFieldGenerator.getToBig(WRITER_MIDDLE_NAME_LEN_MAX));
-        ControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongMiddleName, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongMiddleName, answer, resultMatcherStatus);
     }
 
     @Test
@@ -121,41 +120,17 @@ public class WriterRestTest {
         inWriterDtoWrongComment.setMiddleName(TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX));
 
         inWriterDtoWrongComment.setComment(TestStringFieldGenerator.getToBig(WRITER_COMMENT_LEN_MAX));
-        ControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongComment, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilPost(mockMvc, url, inWriterDtoWrongComment, answer, resultMatcherStatus);
     }
 
     @Test
     public void createWriterSuccessTest() throws Exception {
         String url = WRITER_REST_TEST_BASE_URL;
         ResultMatcher resultMatcherStatus = status().isCreated();
-
-        Long createdWriterId = 1l;
-        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
-        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
-        String middleName = TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX);
-        String comment = TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX);
-
-        WriterDto inWriterDto = new WriterDto();
-        inWriterDto.setFirstName(firstName);
-        inWriterDto.setSurname(surname);
-        inWriterDto.setMiddleName(middleName);
-        inWriterDto.setComment(comment);
-
-        WriterDto outWriterDto = new WriterDto();
-        outWriterDto.setFirstName(firstName);
-        outWriterDto.setSurname(surname);
-        outWriterDto.setMiddleName(middleName);
-        outWriterDto.setComment(comment);
-        outWriterDto.setId(createdWriterId);
-
-        Writer inWriter = new Writer(firstName, surname, middleName, comment);
-        Writer outWriter = new Writer(firstName, surname, middleName, comment);
-        outWriter.setId(createdWriterId);
-
         String answer = writerDtoToString(outWriterDto);
 
         when(mockWriterRepository.save(inWriter)).thenReturn(outWriter);
-        ControllerUtil.testUtilPost(mockMvc, url, inWriterDto, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilPost(mockMvc, url, inWriterDto, answer, resultMatcherStatus);
         verify(mockWriterRepository).save(inWriter);
     }
 
@@ -164,145 +139,107 @@ public class WriterRestTest {
         String url = WRITER_REST_TEST_BASE_URL;
         String answer = SERVICE_EXCEPTION_EXIST_ENTITY_FORMAT_STRING;
         ResultMatcher resultMatcherStatus = status().isBadRequest();
-
-        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
-        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
-        String middleName = TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX);
-        String comment = TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX);
-
-        WriterDto inWriterDto = new WriterDto();
-        inWriterDto.setFirstName(firstName);
-        inWriterDto.setSurname(surname);
-        inWriterDto.setMiddleName(middleName);
-        inWriterDto.setComment(comment);
-
-        Writer inWriter = new Writer(firstName, surname, middleName, comment);
         Object inObject = inWriterDto;
 
         when(mockWriterRepository.save(inWriter)).thenThrow(PersistenceException.class);
-        ControllerUtil.testUtilPost(mockMvc, url, inObject, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilPost(mockMvc, url, inObject, answer, resultMatcherStatus);
         verify(mockWriterRepository).save(inWriter);
     }
 
     // FIND BY ID
     @Test
     public void getWriterNotExistTest() throws Exception {
-        Long notExistWriterId = 1l;
         String url = WRITER_REST_TEST_BASE_URL + "/" + notExistWriterId;
         String answer = serviceExceptionNoEntityWithId(WriterServiceImpl.SERVICE_NAME, notExistWriterId).getMessage();
         ResultMatcher resultMatcherStatus = status().isBadRequest();
 
         when(mockWriterRepository.findById(notExistWriterId)).thenReturn(Optional.empty());
-        ControllerUtil.testUtilGet(mockMvc, url, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilGet(mockMvc, url, answer, resultMatcherStatus);
         verify(mockWriterRepository).findById(notExistWriterId);
     }
 
     @Test
     public void getWriterSuccessTest() throws Exception {
-        Long existWriterId = 1l;
         String url = WRITER_REST_TEST_BASE_URL + "/" + existWriterId;
         ResultMatcher resultMatcherStatus = status().isOk();
-
-        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
-        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
-        String middleName = TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX);
-        String comment = TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX);
-        Writer outWriter = new Writer(firstName, surname, middleName, comment);
-        outWriter.setId(existWriterId);
-
-        WriterDto outWriterDto = new WriterDto();
-        outWriterDto.setFirstName(firstName);
-        outWriterDto.setSurname(surname);
-        outWriterDto.setMiddleName(middleName);
-        outWriterDto.setComment(comment);
-        outWriterDto.setId(existWriterId);
-
         String answer = writerDtoToString(outWriterDto);
 
         when(mockWriterRepository.findById(existWriterId)).thenReturn(Optional.of(outWriter));
-        ControllerUtil.testUtilGet(mockMvc, url, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilGet(mockMvc, url, answer, resultMatcherStatus);
         verify(mockWriterRepository).findById(existWriterId);
     }
 
     // FIND ALL
     @Test
     public void getAllWritersSuccessTest() throws Exception {
-        Long existWriterId = 1l;
         String url = WRITER_REST_TEST_BASE_URL;
         ResultMatcher resultMatcherStatus = status().isOk();
-
-        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
-        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
-        String middleName = TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX);
-        String comment = TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX);
-        Writer outWriter = new Writer(firstName, surname, middleName, comment);
-        outWriter.setId(existWriterId);
-
-        WriterDto outWriterDto = new WriterDto();
-        outWriterDto.setFirstName(firstName);
-        outWriterDto.setSurname(surname);
-        outWriterDto.setMiddleName(middleName);
-        outWriterDto.setComment(comment);
-        outWriterDto.setId(existWriterId);
-
         String answer = writerDtoToString(outWriterDto);
 
         when(mockWriterRepository.findAll()).thenReturn(Collections.singletonList(outWriter));
-        ControllerUtil.testUtilGet(mockMvc, url, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilGet(mockMvc, url, answer, resultMatcherStatus);
         verify(mockWriterRepository).findAll();
     }
 
     // DELETE BY ID
     @Test
     public void deleteWriterNotExistTest() throws Exception {
-        Long notExistWriterId = 1l;
         String url = WRITER_REST_TEST_BASE_URL + "/" + notExistWriterId;
         String answer = serviceExceptionNoEntityWithId(WriterServiceImpl.SERVICE_NAME, notExistWriterId).getMessage();
         ResultMatcher resultMatcherStatus = status().isBadRequest();
 
         when(mockWriterRepository.findById(notExistWriterId)).thenReturn(Optional.empty());
-        ControllerUtil.testUtilDelete(mockMvc, url, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilDelete(mockMvc, url, answer, resultMatcherStatus);
         verify(mockWriterRepository).findById(notExistWriterId);
     }
 
     @Test
     public void deleteWriterSuccessTest() throws Exception {
-        Long existWriterId = 1l;
         String url = WRITER_REST_TEST_BASE_URL + "/" + existWriterId;
         String answer = "";
         ResultMatcher resultMatcherStatus = status().isOk();
 
-        Writer outWriter = new Writer(
-                TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX),
-                TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX),
-                TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX),
-                TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX)
-        );
-        outWriter.setId(existWriterId);
-
         when(mockWriterRepository.findById(existWriterId)).thenReturn(Optional.of(outWriter));
-        ControllerUtil.testUtilDelete(mockMvc, url, answer, resultMatcherStatus);
+        AllControllerUtil.testUtilDelete(mockMvc, url, answer, resultMatcherStatus);
         verify(mockWriterRepository).findById(existWriterId);
     }
 
     @Test
     public void deleteWriterRelatedTest() throws Exception {
-        Long existWriterId = 1l;
-        String url = WRITER_REST_TEST_BASE_URL + "/" + existWriterId;
+        String url = WRITER_REST_TEST_BASE_URL + "/" + existWriterWithBookId;
         String answer = serviceExceptionDeleteOrUpdateRelatedEntity(WriterServiceImpl.SERVICE_NAME, WRITER_BOOKS_FIELD_NAME).getMessage();
         ResultMatcher resultMatcherStatus = status().isBadRequest();
 
-        Writer outWriter = new Writer(
-                TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX),
-                TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX),
-                TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX),
-                TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX)
-        );
-        outWriter.setId(existWriterId);
-        outWriter.setBooks(Collections.singletonList(new Book(null, null)));
+        when(mockWriterRepository.findById(existWriterWithBookId)).thenReturn(Optional.of(outWriterWithBook));
+        AllControllerUtil.testUtilDelete(mockMvc, url, answer, resultMatcherStatus);
+        verify(mockWriterRepository).findById(existWriterWithBookId);
+    }
 
-        when(mockWriterRepository.findById(existWriterId)).thenReturn(Optional.of(outWriter));
-        ControllerUtil.testUtilDelete(mockMvc, url, answer, resultMatcherStatus);
+    // UPDATE BY ID
+    @Test
+    public void updateWriterExistTest() throws Exception {
+        String url = WRITER_REST_TEST_BASE_URL + "/" + existWriterId;;
+        String answer = SERVICE_EXCEPTION_EXIST_ENTITY_FORMAT_STRING;
+        ResultMatcher resultMatcherStatus = status().isBadRequest();
+
+        Object inObject = inWriterDto;
+
+        when(mockWriterRepository.findById(existWriterId)).thenReturn(Optional.of(inWriter));
+        when(mockWriterRepository.save(inWriter)).thenThrow(PersistenceException.class);
+        AllControllerUtil.testUtilPut(mockMvc, url, inObject, answer, resultMatcherStatus);
         verify(mockWriterRepository).findById(existWriterId);
+        verify(mockWriterRepository).save(inWriter);
+    }
+
+    @Test
+    public void updateWriterNotExistTest() throws Exception {
+        String url = WRITER_REST_TEST_BASE_URL + "/" + notExistWriterId;
+        String answer = serviceExceptionNoEntityWithId(WriterServiceImpl.SERVICE_NAME, notExistWriterId).getMessage();
+        ResultMatcher resultMatcherStatus = status().isBadRequest();
+        Object inObject = inWriterDto;
+
+        when(mockWriterRepository.findById(notExistWriterId)).thenReturn(Optional.empty());
+        AllControllerUtil.testUtilPut(mockMvc, url, inObject, answer, resultMatcherStatus);
+        verify(mockWriterRepository).findById(notExistWriterId);
     }
 }
