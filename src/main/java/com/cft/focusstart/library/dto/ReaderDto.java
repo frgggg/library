@@ -32,11 +32,11 @@ public class ReaderDto {
 
     public ReaderDto() {}
 
-    public Boolean getDebtor() {
+    public Boolean getIsDebtor() {
         return isDebtor;
     }
 
-    public void setDebtor(Boolean debtor) {
-        isDebtor = debtor;
+    public void setIsDebtor(Boolean isDebtor) {
+        this.isDebtor = isDebtor;
     }
 }

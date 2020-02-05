@@ -21,7 +21,7 @@ public class ReaderToReaderDto implements Converter<Reader, ReaderDto> {
 
         readerDto.setId(reader.getId());
         readerDto.setName(reader.getName());
-        readerDto.setDebtor(reader.getDebtor());
+        readerDto.setIsDebtor(reader.getDebtor());
 
         List<Book> books = reader.getBooks();
         if(books != null)
