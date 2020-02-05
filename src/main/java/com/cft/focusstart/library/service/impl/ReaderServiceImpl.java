@@ -136,4 +136,9 @@ public class ReaderServiceImpl implements ReaderService {
         Reader updatedReader = readerRepository.save(readerForUpdateReaderStatus);
         log.debug(SERVICE_LOG_UPDATE_ENTITY, id, updatedReader);
     }
+
+    @Override
+    public List<Reader> findNotDebtors() {
+        return readerRepository.findNotDebtors();
+    }
 }

@@ -14,4 +14,6 @@ public interface ReaderService {
     void refreshDebtorStatus(Long id);
 
     void deleteById(Long id);
+
+    List<Reader> findNotDebtors();
 }
