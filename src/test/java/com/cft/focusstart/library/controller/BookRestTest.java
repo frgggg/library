@@ -2,9 +2,12 @@ package com.cft.focusstart.library.controller;
 
 import com.cft.focusstart.library.controller.util.AllControllerUtil;
 import com.cft.focusstart.library.dto.BookDto;
-import com.cft.focusstart.library.model.Writer;
+import com.cft.focusstart.library.dto.ReaderDto;
 import com.cft.focusstart.library.repository.BookRepository;
 import com.cft.focusstart.library.repository.ReaderRepository;
+
+import com.cft.focusstart.library.repository.WriterRepository;
+import com.cft.focusstart.library.service.impl.ReaderServiceImpl;
 import com.cft.focusstart.library.util.TestStringFieldGenerator;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,12 +18,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
+import static org.mockito.Mockito.*;
 
 import java.util.Collections;
+import java.util.Optional;
 
+import static com.cft.focusstart.library.controller.util.BookRestTestUtil.*;
 import static com.cft.focusstart.library.model.Book.*;
-import static com.cft.focusstart.library.model.Writer.*;
-import static com.cft.focusstart.library.model.Writer.WRITER_COMMENT_LEN_MAX;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -34,15 +38,17 @@ public class BookRestTest {
     private BookRepository mockBookRepository;
 
     @MockBean
-    private ReaderRepository mockReaderRepository;
+    private WriterRepository mockWriterRepository;
 
     private static final String BOOK_REST_TEST_BASE_URL = "/book";
 
     private static String bookDtoToString(BookDto bookDto) {
         return String.format(
-                "{\"id\":%d,\"name\":\"%s\",\"writers\":%s}"
+                "{\"id\":%d,\"name\":\"%s\",\"reader\":%s,\"backTime\":%s,\"writers\":%s}"
                 , bookDto.getId()
                 , bookDto.getName()
+                , bookDto.getReader()
+                , bookDto.getBackTime()
                 , bookDto.getWriters()
         );
     }
@@ -70,25 +76,14 @@ public class BookRestTest {
         String url = BOOK_REST_TEST_BASE_URL;
         ResultMatcher resultMatcherStatus = status().isCreated();
 
-        Writer writerOfBook = new Writer(
-                TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX),
-                TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX),
-                TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX),
-                TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX)
-        );
-        Long writerOfBookId = 101l;
-        writerOfBook.setId(writerOfBookId);
+        Object inObject = inBookDto;
+        String answer = bookDtoToString(outBookDto);
 
-        BookDto inBookDto = new BookDto();
-        inBookDto.setName(TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX));
-        inBookDto.setWriters(Collections.singletonList(writerOfBookId));
-
-        BookDto outBookDto = new BookDto();
-        Long outBookDtoId = 1l;
-        outBookDto.setName(TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX));
-        inBookDto.setWriters(Collections.singletonList(writerOfBookId));
-        outBookDto.setId(outBookDtoId);
-
+        when(mockBookRepository.save(inBook)).thenReturn(outBook);
+        when(mockWriterRepository.findById(writerOfBookId)).thenReturn(Optional.of(writerOfBook));
+        AllControllerUtil.testUtilPost(mockMvc, url, inObject, answer, resultMatcherStatus);
+        verify(mockBookRepository).save(inBook);
+        verify(mockWriterRepository).findById(writerOfBookId);
 
     }
 }

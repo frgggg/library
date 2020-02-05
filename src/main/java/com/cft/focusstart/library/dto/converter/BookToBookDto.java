@@ -21,6 +21,8 @@ public class BookToBookDto  implements Converter<Book, BookDto> {
 
         bookDto.setId(book.getId());
 
+        bookDto.setName(book.getName());
+
         if(book.getReader() != null) {
             bookDto.setReader(book.getReader().getId());
         }

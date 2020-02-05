@@ -14,10 +14,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 public class AllControllerUtil {
-    public static final MediaType APPLICATION_JSON_UTF8 = new MediaType(MediaType.APPLICATION_JSON.getType(),
-            MediaType.APPLICATION_JSON.getSubtype(),
-            Charset.forName("utf8")
-    );
 
     public static byte[] convertObjectToJsonBytes(Object object) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
@@ -28,12 +24,10 @@ public class AllControllerUtil {
     public static void testUtilPost(MockMvc mockMvc, String url, Object inObject, String answer, ResultMatcher resultMatcherStatus) throws Exception{
         mockMvc.perform(
                 post(url)
-                        //.contentType(APPLICATION_JSON_UTF8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(convertObjectToJsonBytes(inObject))
         )
                 .andExpect(resultMatcherStatus)
-                //.andExpect(content().string(containsString(outData)));
                 .andExpect(content().string(answer));
 
     }
