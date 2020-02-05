@@ -272,11 +272,12 @@ public class WriterRestTest {
         String answer = "";
         ResultMatcher resultMatcherStatus = status().isOk();
 
-        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
-        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
-        String middleName = TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX);
-        String comment = TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX);
-        Writer outWriter = new Writer(firstName, surname, middleName, comment);
+        Writer outWriter = new Writer(
+                TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX),
+                TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX),
+                TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX),
+                TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX)
+        );
         outWriter.setId(existWriterId);
 
         when(mockWriterRepository.findById(existWriterId)).thenReturn(Optional.of(outWriter));
@@ -291,11 +292,12 @@ public class WriterRestTest {
         String answer = serviceExceptionDeleteOrUpdateRelatedEntity(WriterServiceImpl.SERVICE_NAME, WRITER_BOOKS_FIELD_NAME).getMessage();
         ResultMatcher resultMatcherStatus = status().isBadRequest();
 
-        String firstName = TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX);
-        String surname = TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX);
-        String middleName = TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX);
-        String comment = TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX);
-        Writer outWriter = new Writer(firstName, surname, middleName, comment);
+        Writer outWriter = new Writer(
+                TestStringFieldGenerator.getRightByMax(WRITER_FIRST_NAME_LEN_MAX),
+                TestStringFieldGenerator.getRightByMax(WRITER_SURNAME_LEN_MAX),
+                TestStringFieldGenerator.getRightByMax(WRITER_MIDDLE_NAME_LEN_MAX),
+                TestStringFieldGenerator.getRightByMax(WRITER_COMMENT_LEN_MAX)
+        );
         outWriter.setId(existWriterId);
         outWriter.setBooks(Collections.singletonList(new Book(null, null)));
 
