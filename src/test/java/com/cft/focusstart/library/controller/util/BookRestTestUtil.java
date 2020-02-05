@@ -26,10 +26,11 @@ public class BookRestTestUtil {
 
     public static final Long existBookId =  1l;
     public static final Long notExistBookId =  2l;
-    public static final Long existBookWithReaderId =  3l;
+    public static final Long existBookWithReaderId =  existBookId;
 
     public static final BookDto inBookDto = new BookDto();
     public static final BookDto outBookDto = new BookDto();
+    public static final BookDto outBookWithReaderDto = new BookDto();
 
     public static final Book inBook = new Book(TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX), Collections.singletonList(writerOfBook));
     public static final Book outBook = new Book(TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX), Collections.singletonList(writerOfBook));
@@ -46,9 +47,14 @@ public class BookRestTestUtil {
         outBookDto.setWriters(Collections.singletonList(writerOfBookId));
         outBookDto.setId(existBookId);
 
+        outBookWithReaderDto.setName(TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX));
+        outBookWithReaderDto.setWriters(Collections.singletonList(writerOfBookId));
+        outBookWithReaderDto.setId(existBookId);
+        outBookWithReaderDto.setReader(readerOfBookId);
+
         outBook.setId(existBookId);
 
-        outBookWithReader.setId(existBookId);
+        outBookWithReader.setId(existBookWithReaderId);
         outBookWithReader.setReader(readerOfBook);
     }
 }
