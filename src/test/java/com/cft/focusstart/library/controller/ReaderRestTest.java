@@ -173,7 +173,7 @@ public class ReaderRestTest {
         ResultMatcher resultMatcherStatus = status().isBadRequest();
         String answer = serviceExceptionNoEntityWithId(ReaderServiceImpl.SERVICE_NAME, notExistReaderId).getMessage();
 
-        Object inObject = inReader;
+        Object inObject = inReaderDto;
 
         when(mockReaderRepository.findById(notExistReaderId)).thenReturn(Optional.empty());
         AllControllerUtil.testUtilPut(mockMvc, url, inObject, answer, resultMatcherStatus);

@@ -23,6 +23,7 @@ public class BookRestTestUtil {
 
     public static final Reader readerOfBook = new Reader(TestStringFieldGenerator.getRightByMax(READER_NAME_LEN_MAX));
     public static final Long readerOfBookId =  2001l;
+    public static final Long notExistBookReaderId = 2002l;
 
     public static final Long existBookId =  1l;
     public static final Long notExistBookId =  2l;
