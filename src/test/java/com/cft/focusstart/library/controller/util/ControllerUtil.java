@@ -25,43 +25,41 @@ public class ControllerUtil {
         return mapper.writeValueAsBytes(object);
     }
 
-    public static void testUtilPost(MockMvc mockMvc, String url, Object inData, String outData, ResultMatcher resultMatcherStatus) throws Exception{
+    public static void testUtilPost(MockMvc mockMvc, String url, Object inObject, String answer, ResultMatcher resultMatcherStatus) throws Exception{
         mockMvc.perform(
                 post(url)
                         //.contentType(APPLICATION_JSON_UTF8)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(inData))
+                        .content(convertObjectToJsonBytes(inObject))
         )
                 .andExpect(resultMatcherStatus)
                 //.andExpect(content().string(containsString(outData)));
-                .andExpect(content().string(outData));
+                .andExpect(content().string(answer));
 
     }
 
-    public static void testUtilPut(MockMvc mockMvc, String url, Object inData, String outData, ResultMatcher resultMatcherStatus) throws Exception{
+    public static void testUtilPut(MockMvc mockMvc, String url, Object inObject, String answer, ResultMatcher resultMatcherStatus) throws Exception{
         mockMvc.perform(
                 put(url)
-                        //.contentType(APPLICATION_JSON_UTF8)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(convertObjectToJsonBytes(inData))
+                        .content(convertObjectToJsonBytes(inObject))
         )
                 .andExpect(resultMatcherStatus)
-                //.andExpect(content().string(containsString(outData)));
-                .andExpect(content().string(outData));
+                .andExpect(content().string(answer));
 
     }
 
-    public static void testUtilGet(MockMvc mockMvc, String url, String outData, ResultMatcher resultMatcherStatus) throws Exception{
+    public static void testUtilGet(MockMvc mockMvc, String url, String answer, ResultMatcher resultMatcherStatus) throws Exception{
         mockMvc.perform(get(url))
                 .andExpect(resultMatcherStatus)
-                .andExpect(content().string(containsString(outData)));
+                .andExpect(content().string(containsString(answer)));
 
     }
 
-    public static void testUtilDelete(MockMvc mockMvc, String url, String outData, ResultMatcher resultMatcherStatus) throws Exception{
+    public static void testUtilDelete(MockMvc mockMvc, String url, String answer, ResultMatcher resultMatcherStatus) throws Exception{
         mockMvc.perform(delete(url))
                 .andExpect(resultMatcherStatus)
-                .andExpect(content().string(containsString(outData)));
+                .andExpect(content().string(containsString(answer)));
 
     }
 }

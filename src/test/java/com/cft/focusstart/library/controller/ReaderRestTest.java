@@ -23,7 +23,6 @@ import java.util.Optional;
 
 import static com.cft.focusstart.library.exception.ServiceException.serviceExceptionDeleteOrUpdateRelatedEntity;
 import static com.cft.focusstart.library.exception.ServiceException.serviceExceptionNoEntityWithId;
-import static com.cft.focusstart.library.model.Book.BOOK_NAME_LEN_MAX;
 import static com.cft.focusstart.library.model.Reader.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -86,8 +85,11 @@ public class ReaderRestTest {
         Reader outReader = new Reader(outReaderDto.getName());
         outReader.setId(outReaderDto.getId());
 
+        Object inObject = inReaderDto;
+        String answer = readerDtoToString(outReaderDto);
+
         when(mockReaderRepository.save(inReader)).thenReturn(outReader);
-        ControllerUtil.testUtilPost(mockMvc, url, inReaderDto, readerDtoToString(outReaderDto), resultMatcherStatus);
+        ControllerUtil.testUtilPost(mockMvc, url, inObject, answer, resultMatcherStatus);
         verify(mockReaderRepository).save(inReader);
     }
 
@@ -106,8 +108,10 @@ public class ReaderRestTest {
         outReaderDto.setId(outReader.getId());
         outReaderDto.setIsDebtor(READER_IS_NOT_DEBTOR_STATUS);
 
+        String answer = readerDtoToString(outReaderDto);
+
         when(mockReaderRepository.findById(inReaderId)).thenReturn(Optional.of(outReader));
-        ControllerUtil.testUtilGet(mockMvc, url, readerDtoToString(outReaderDto), resultMatcherStatus);
+        ControllerUtil.testUtilGet(mockMvc, url, answer, resultMatcherStatus);
         verify(mockReaderRepository).findById(inReaderId);
     }
 
@@ -116,10 +120,10 @@ public class ReaderRestTest {
         Long notExistReaderId = 1l;
         String url = READER_REST_TEST_BASE_URL + "/" + notExistReaderId;
         ResultMatcher resultMatcherStatus = status().isBadRequest();
-        String notExistReaderExceptionMessage = serviceExceptionNoEntityWithId(ReaderServiceImpl.SERVICE_NAME, notExistReaderId).getMessage();
+        String answer = serviceExceptionNoEntityWithId(ReaderServiceImpl.SERVICE_NAME, notExistReaderId).getMessage();
 
         when(mockReaderRepository.findById(notExistReaderId)).thenReturn(Optional.empty());
-        ControllerUtil.testUtilGet(mockMvc, url, notExistReaderExceptionMessage, resultMatcherStatus);
+        ControllerUtil.testUtilGet(mockMvc, url, answer, resultMatcherStatus);
         verify(mockReaderRepository).findById(notExistReaderId);
     }
 
@@ -127,7 +131,7 @@ public class ReaderRestTest {
     @Test
     public void getAllReadersSuccessTest() throws Exception {
         Long inReaderId = 1l;
-        String url = READER_REST_TEST_BASE_URL ;
+        String url = READER_REST_TEST_BASE_URL;
         ResultMatcher resultMatcherStatus = status().isOk();
 
         Reader outReader = new Reader(TestStringFieldGenerator.getRightByMax(READER_NAME_LEN_MAX));
@@ -138,8 +142,10 @@ public class ReaderRestTest {
         outReaderDto.setId(outReader.getId());
         outReaderDto.setIsDebtor(READER_IS_NOT_DEBTOR_STATUS);
 
+        String answer = readerDtoToString(outReaderDto);
+
         when(mockReaderRepository.findAll()).thenReturn(Collections.singletonList(outReader));
-        ControllerUtil.testUtilGet(mockMvc, url, readerDtoToString(outReaderDto), resultMatcherStatus);
+        ControllerUtil.testUtilGet(mockMvc, url, answer, resultMatcherStatus);
         verify(mockReaderRepository).findAll();
     }
 
@@ -149,10 +155,10 @@ public class ReaderRestTest {
         Long notExistReaderId = 1l;
         String url = READER_REST_TEST_BASE_URL + "/" + notExistReaderId;
         ResultMatcher resultMatcherStatus = status().isBadRequest();
-        String notExistReaderExceptionMessage = serviceExceptionNoEntityWithId(ReaderServiceImpl.SERVICE_NAME, notExistReaderId).getMessage();
+        String answer = serviceExceptionNoEntityWithId(ReaderServiceImpl.SERVICE_NAME, notExistReaderId).getMessage();
 
         when(mockReaderRepository.findById(notExistReaderId)).thenReturn(Optional.empty());
-        ControllerUtil.testUtilDelete(mockMvc, url, notExistReaderExceptionMessage, resultMatcherStatus);
+        ControllerUtil.testUtilDelete(mockMvc, url, answer, resultMatcherStatus);
         verify(mockReaderRepository).findById(notExistReaderId);
     }
 
@@ -161,12 +167,13 @@ public class ReaderRestTest {
         Long inReaderId = 1l;
         String url = READER_REST_TEST_BASE_URL + "/" + inReaderId;
         ResultMatcher resultMatcherStatus = status().isOk();
+        String answer = "";
 
         Reader outReader = new Reader(TestStringFieldGenerator.getRightByMax(READER_NAME_LEN_MAX));
         outReader.setId(inReaderId);
 
         when(mockReaderRepository.findById(inReaderId)).thenReturn(Optional.of(outReader));
-        ControllerUtil.testUtilDelete(mockMvc, url, "", resultMatcherStatus);
+        ControllerUtil.testUtilDelete(mockMvc, url, answer, resultMatcherStatus);
         verify(mockReaderRepository).findById(inReaderId);
     }
 
@@ -175,15 +182,14 @@ public class ReaderRestTest {
         Long inReaderId = 1l;
         String url = READER_REST_TEST_BASE_URL + "/" + inReaderId;
         ResultMatcher resultMatcherStatus = status().isBadRequest();
+        String answer = serviceExceptionDeleteOrUpdateRelatedEntity(ReaderServiceImpl.SERVICE_NAME, READER_BOOKS_FIELD_NAME).getMessage();
 
         Reader outReader = new Reader(TestStringFieldGenerator.getRightByMax(READER_NAME_LEN_MAX));
         outReader.setId(inReaderId);
         outReader.setBooks(Collections.singletonList(new Book(null, null)));
 
-        String debtorReaderExceptionMessage = serviceExceptionDeleteOrUpdateRelatedEntity(ReaderServiceImpl.SERVICE_NAME, READER_BOOKS_FIELD_NAME).getMessage();
-
         when(mockReaderRepository.findById(inReaderId)).thenReturn(Optional.of(outReader));
-        ControllerUtil.testUtilDelete(mockMvc, url, debtorReaderExceptionMessage, resultMatcherStatus);
+        ControllerUtil.testUtilDelete(mockMvc, url, answer, resultMatcherStatus);
         verify(mockReaderRepository).findById(inReaderId);
     }
 
@@ -205,9 +211,12 @@ public class ReaderRestTest {
         Reader outReader = new Reader(outReaderDto.getName());
         outReader.setId(outReaderDto.getId());
 
+        Object inObject = inReaderDto;
+        String answer = readerDtoToString(outReaderDto);
+
         when(mockReaderRepository.findById(updatedReaderId)).thenReturn(Optional.of(outReader));
         when(mockReaderRepository.save(outReader)).thenReturn(outReader);
-        ControllerUtil.testUtilPut(mockMvc, url, inReaderDto, readerDtoToString(outReaderDto), resultMatcherStatus);
+        ControllerUtil.testUtilPut(mockMvc, url, inObject, answer, resultMatcherStatus);
         verify(mockReaderRepository).findById(updatedReaderId);
         verify(mockReaderRepository).save(outReader);
     }
@@ -217,12 +226,13 @@ public class ReaderRestTest {
         Long notExistReaderId = 1l;
         String url = READER_REST_TEST_BASE_URL + "/" + notExistReaderId;
         ResultMatcher resultMatcherStatus = status().isBadRequest();
-        String notExistReaderExceptionMessage = serviceExceptionNoEntityWithId(ReaderServiceImpl.SERVICE_NAME, notExistReaderId).getMessage();
+        String answer = serviceExceptionNoEntityWithId(ReaderServiceImpl.SERVICE_NAME, notExistReaderId).getMessage();
 
         Reader inReader = new Reader(TestStringFieldGenerator.getRightByMax(READER_NAME_LEN_MAX));
+        Object inObject = inReader;
 
         when(mockReaderRepository.findById(notExistReaderId)).thenReturn(Optional.empty());
-        ControllerUtil.testUtilPut(mockMvc, url, inReader, notExistReaderExceptionMessage, resultMatcherStatus);
+        ControllerUtil.testUtilPut(mockMvc, url, inObject, answer, resultMatcherStatus);
         verify(mockReaderRepository).findById(notExistReaderId);
     }
 
@@ -232,10 +242,11 @@ public class ReaderRestTest {
         Long notExistReaderId = 1l;
         String url = READER_REST_TEST_BASE_URL + "/" + notExistReaderId + "/refresh-debtor-status";
         ResultMatcher resultMatcherStatus = status().isBadRequest();
-        String notExistReaderExceptionMessage = serviceExceptionNoEntityWithId(ReaderServiceImpl.SERVICE_NAME, notExistReaderId).getMessage();
+        String answer = serviceExceptionNoEntityWithId(ReaderServiceImpl.SERVICE_NAME, notExistReaderId).getMessage();
+        Object inObject = null;
 
         when(mockReaderRepository.findById(notExistReaderId)).thenReturn(Optional.empty());
-        ControllerUtil.testUtilPut(mockMvc, url, "", notExistReaderExceptionMessage, resultMatcherStatus);
+        ControllerUtil.testUtilPut(mockMvc, url, inObject, answer, resultMatcherStatus);
         verify(mockReaderRepository).findById(notExistReaderId);
     }
 
@@ -244,13 +255,15 @@ public class ReaderRestTest {
         Long refreshDebtorStatusReaderId = 1l;
         String url = READER_REST_TEST_BASE_URL + "/" + refreshDebtorStatusReaderId + "/refresh-debtor-status";
         ResultMatcher resultMatcherStatus = status().isOk();
+        String answer = "";
+        Object inObject = null;
 
         Reader outReader = new Reader(TestStringFieldGenerator.getRightByMax(READER_NAME_LEN_MAX));
         outReader.setId(refreshDebtorStatusReaderId);
 
         when(mockReaderRepository.findById(refreshDebtorStatusReaderId)).thenReturn(Optional.of(outReader));
         when(mockReaderRepository.save(outReader)).thenReturn(outReader);
-        ControllerUtil.testUtilPut(mockMvc, url, "", "", resultMatcherStatus);
+        ControllerUtil.testUtilPut(mockMvc, url, inObject, answer, resultMatcherStatus);
         verify(mockReaderRepository).findById(refreshDebtorStatusReaderId);
         verify(mockReaderRepository).save(outReader);
     }
