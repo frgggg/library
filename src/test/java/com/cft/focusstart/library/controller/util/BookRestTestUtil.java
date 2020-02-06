@@ -9,6 +9,7 @@ import com.cft.focusstart.library.util.TestStringFieldGenerator;
 import java.util.Collections;
 
 import static com.cft.focusstart.library.model.Book.BOOK_NAME_LEN_MAX;
+import static com.cft.focusstart.library.model.Reader.READER_IS_DEBTOR_STATUS;
 import static com.cft.focusstart.library.model.Reader.READER_NAME_LEN_MAX;
 import static com.cft.focusstart.library.model.Writer.*;
 
@@ -22,12 +23,14 @@ public class BookRestTestUtil {
     public static final Long writerOfBookId =  1001l;
 
     public static final Reader readerOfBook = new Reader(TestStringFieldGenerator.getRightByMax(READER_NAME_LEN_MAX));
+    public static final Reader debtorReaderOfBook = new Reader(TestStringFieldGenerator.getRightByMax(READER_NAME_LEN_MAX));
     public static final Long readerOfBookId =  2001l;
     public static final Long notExistBookReaderId = 2002l;
+    public static final Long debtorReaderOfBookId = 2003l;
 
     public static final Long existBookId =  1l;
     public static final Long notExistBookId =  2l;
-    public static final Long existBookWithReaderId =  existBookId;
+    public static final Long existBookWithReaderId = existBookId;
 
     public static final BookDto inBookDto = new BookDto();
     public static final BookDto outBookDto = new BookDto();
@@ -40,6 +43,9 @@ public class BookRestTestUtil {
     static {
         writerOfBook.setId(writerOfBookId);
         readerOfBook.setId(readerOfBookId);
+
+        debtorReaderOfBook.setId(debtorReaderOfBookId);
+        debtorReaderOfBook.setDebtor(READER_IS_DEBTOR_STATUS);
 
         inBookDto.setName(TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX));
         inBookDto.setWriters(Collections.singletonList(writerOfBookId));

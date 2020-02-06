@@ -3,6 +3,8 @@ package com.cft.focusstart.library.controller;
 import com.cft.focusstart.library.controller.util.AllControllerUtil;
 import com.cft.focusstart.library.dto.BookDto;
 import com.cft.focusstart.library.dto.ReaderDto;
+import com.cft.focusstart.library.model.Book;
+import com.cft.focusstart.library.model.Reader;
 import com.cft.focusstart.library.repository.BookRepository;
 import com.cft.focusstart.library.repository.ReaderRepository;
 
@@ -22,9 +24,11 @@ import org.springframework.test.web.servlet.ResultMatcher;
 
 import static com.cft.focusstart.library.controller.util.ReaderRestTestUtil.*;
 import static com.cft.focusstart.library.controller.util.ReaderRestTestUtil.notExistReaderId;
-import static com.cft.focusstart.library.exception.ServiceException.serviceExceptionDeleteOrUpdateRelatedEntity;
-import static com.cft.focusstart.library.exception.ServiceException.serviceExceptionNoEntityWithId;
+import static com.cft.focusstart.library.exception.ServiceException.*;
 import static com.cft.focusstart.library.model.Reader.READER_BOOKS_FIELD_NAME;
+import static com.cft.focusstart.library.model.Reader.READER_IS_DEBTOR_FIELD_NAME;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
 import java.util.Collections;
@@ -205,7 +209,7 @@ public class BookRestTest {
         ResultMatcher resultMatcherStatus = status().isBadRequest();
         String answer = serviceExceptionNoEntityWithId(BookServiceImpl.SERVICE_NAME, notExistBookId).getMessage();
 
-        Object inObject = inBookDto;
+        Object inObject = "";
 
         when(mockBookRepository.findById(notExistBookId)).thenReturn(Optional.empty());
         AllControllerUtil.testUtilPut(mockMvc, url, inObject, answer, resultMatcherStatus);
@@ -217,17 +221,24 @@ public class BookRestTest {
         String url = BOOK_REST_TEST_BASE_URL + "/" + existBookId + "/unset-reader";
         ResultMatcher resultMatcherStatus = status().isOk();
         String answer = "";
+        Object inObject = "";
 
-        Object inObject = inBookDto;
+        Book bookWithReader = new Book(TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX), Collections.singletonList(writerOfBook));
+        bookWithReader.setReader(readerOfBook);
+        bookWithReader.setId(existBookId);
 
-        when(mockBookRepository.findById(existBookId)).thenReturn(Optional.of(outBook));
-        when(mockBookRepository.save(outBook)).thenReturn(outBook);
+        Book bookWithNoReader = new Book(TestStringFieldGenerator.getRightByMax(BOOK_NAME_LEN_MAX), Collections.singletonList(writerOfBook));
+        bookWithReader.setId(existBookId);
+
+
+        when(mockBookRepository.findById(existBookId)).thenReturn(Optional.of(bookWithReader));
+        when(mockBookRepository.save(bookWithReader)).thenReturn(bookWithNoReader);
         AllControllerUtil.testUtilPut(mockMvc, url, inObject, answer, resultMatcherStatus);
         verify(mockBookRepository).findById(existBookId);
         verify(mockBookRepository).save(outBook);
     }
 
-    // UNSET READER
+    // SET READER
     @Test
     public void setReaderForBookNotExistBookTest() throws Exception {
         String url = BOOK_REST_TEST_BASE_URL + "/" + notExistBookId + "/set-reader?reader=" + readerOfBookId;
@@ -243,7 +254,7 @@ public class BookRestTest {
 
     @Test
     public void setReaderForBookNotExistReaderTest() throws Exception {
-        String url = BOOK_REST_TEST_BASE_URL + "/" + existBookId + "/set-reader?reader=" + readerOfBookId;
+        String url = BOOK_REST_TEST_BASE_URL + "/" + existBookId + "/set-reader?reader=" + notExistBookReaderId;
         ResultMatcher resultMatcherStatus = status().isBadRequest();
         String answer = serviceExceptionNoEntityWithId(ReaderServiceImpl.SERVICE_NAME, notExistBookReaderId).getMessage();
 
@@ -254,5 +265,25 @@ public class BookRestTest {
         AllControllerUtil.testUtilPut(mockMvc, url, inObject, answer, resultMatcherStatus);
         verify(mockBookRepository).findById(existBookId);
         verify(mockReaderRepository).findById(notExistBookReaderId);
+    }
+
+    @Test
+    public void setReaderForBookDebtorReaderTest() throws Exception {
+        String url = BOOK_REST_TEST_BASE_URL + "/" + existBookId + "/set-reader?reader=" + debtorReaderOfBookId;
+        ResultMatcher resultMatcherStatus = status().isBadRequest();
+        String answer = serviceExceptionSetWrongSubEntity(
+                BookServiceImpl.SERVICE_NAME,
+                debtorReaderOfBookId,
+                READER_IS_DEBTOR_FIELD_NAME,
+                debtorReaderOfBook.getDebtor().toString()
+        ).getMessage();
+
+        Object inObject = inBookDto;
+
+        when(mockBookRepository.findById(existBookId)).thenReturn(Optional.of(outBook));
+        when(mockReaderRepository.findById(debtorReaderOfBookId)).thenReturn(Optional.of(debtorReaderOfBook));
+        AllControllerUtil.testUtilPut(mockMvc, url, inObject, answer, resultMatcherStatus);
+        verify(mockBookRepository).findById(existBookId);
+        verify(mockReaderRepository).findById(debtorReaderOfBookId);
     }
 }
